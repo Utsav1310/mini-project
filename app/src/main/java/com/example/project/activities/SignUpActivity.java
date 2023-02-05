@@ -1,7 +1,6 @@
 package com.example.project.activities;
 
 import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -19,13 +18,11 @@ import com.example.project.databinding.ActivitySignUpBinding;
 import com.example.project.fragments.BottomSheet_AddImage;
 import com.example.project.utilities.Constants;
 import com.example.project.utilities.PreferenceManager;
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 public class SignUpActivity extends AppCompatActivity {
 
@@ -45,10 +42,10 @@ public class SignUpActivity extends AppCompatActivity {
     private void setListeners() {
         binding.textSignIn.setOnClickListener(v -> onBackPressed());
         binding.btnAddImage.setOnClickListener(v -> {
-            BottomSheet_AddImage addImage = new BottomSheet_AddImage(pickImage);
+            BottomSheet_AddImage addImage = new BottomSheet_AddImage(pickImage,clickPic);
             addImage.show(getSupportFragmentManager(), "BottomSheet");
         });
-        binding.btnSignIn.setOnClickListener(v -> {
+        binding.btnSignUp.setOnClickListener(v -> {
             if (isValidSignUpDetails()) {
                 signUp();
             }
@@ -115,6 +112,24 @@ public class SignUpActivity extends AppCompatActivity {
             }
     );
 
+    ActivityResultLauncher<Intent> clickPic = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    if (result.getData() != null) {
+                        Bitmap bitmapImage = (Bitmap) result.getData().getExtras().get("data");
+                        try {
+                            binding.imageProfile.setImageBitmap(bitmapImage);
+                            binding.imgPersonLogo.setVisibility(View.GONE);
+                            encodedImage = encodeImage(bitmapImage);
+                        }catch (Exception e){
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+    );
+
     private Boolean isValidSignUpDetails() {
         if (encodedImage == null) {
             showToast("Please add profile image");
@@ -144,10 +159,10 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void loading(Boolean isLoading) {
         if (isLoading) {
-            binding.btnSignIn.setVisibility(View.INVISIBLE);
+            binding.btnSignUp.setVisibility(View.INVISIBLE);
             binding.progressbar.setVisibility(View.VISIBLE);
         }else {
-            binding.btnSignIn.setVisibility(View.VISIBLE);
+            binding.btnSignUp.setVisibility(View.VISIBLE);
             binding.progressbar.setVisibility(View.INVISIBLE);
         }
     }
